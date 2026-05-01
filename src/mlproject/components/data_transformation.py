@@ -9,10 +9,10 @@ from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 
-from src.mlproject.exception import CustomException
-from src.mlproject.logger import logging
+from mlproject.exception import CustomException
+from mlproject.logger import logging
 
-from src.mlproject.utils import save_object
+from mlproject.utils import save_object
 
 @dataclass
 class DataTransformationConfig:
@@ -22,12 +22,16 @@ class DataTransformaiton:
     def __init__(self):
         self.data_transformation_config = DataTransformationConfig()
     
-    def get_data_transformer_object(self):
+    def get_data_transformer_object(self, target_column_name: str):
         """
-        This function is responsible for data transformation
+        This function is responsible for data transformation.
+        Numeric columns must exclude the target, since X is built without it.
         """
         try:
-            numerical_features = ['math_score', 'reading_score', 'writing_score']
+            all_numerical_features = ['math_score', 'reading_score', 'writing_score']
+            numerical_features = [
+                c for c in all_numerical_features if c != target_column_name
+            ]
             categorical_features = ['gender', 'race_ethnicity', 'parental_level_of_education', 'lunch', 'test_preparation_course']
 
             num_pipeline = Pipeline(
@@ -45,8 +49,8 @@ class DataTransformaiton:
                 ]
             )
 
-            logging.info(f"Categorical columns: ", {cacategorical_features})
-            logging.info(f"Numerical columns: ", {numerical_features})
+            logging.info("Categorical columns: %s", categorical_features)
+            logging.info("Numerical columns (input X): %s", numerical_features)
 
             preprocessor = ColumnTransformer(
                 [
@@ -65,10 +69,11 @@ class DataTransformaiton:
             test_df = pd.read_csv(test_path)
 
             logging.info("Reading train and test data completed")
+            
+            target_column_name = 'math_score'  
+            preprocessing_obj = self.get_data_transformer_object(target_column_name)
 
-            preprocessing_obj = self.get_data_transformer_object()
-
-            target_column_name = 'math_score'
+            
             numerical_features = ['math_score', 'reading_score', 'writing_score']
             
             input_features_train_df = train_df.drop(columns=[target_column_name], axis=1)
