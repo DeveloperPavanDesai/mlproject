@@ -5,3 +5,8 @@ python-dotenv
 pymysql
 mysql-connector-python
 scikit-learn
+seaborn
+catboost
+xgboost
+mlflow
+#-e .
